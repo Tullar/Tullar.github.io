@@ -1,0 +1,109 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>tracking.js - face hello world</title>
+  <link rel="stylesheet" href="tracking/examples/assets/demo.css">
+
+  <script src="tracking/build/tracking-min.js"></script>
+  <script src="tracking/build/data/face-min.js"></script>
+
+  <style>
+  .rect {
+    border: 2px solid #a64ceb;
+    left: -1000px;
+    position: absolute;
+    top: -1000px;
+  }
+
+  #img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin: -150px 0 0 -250px;
+  }
+  </style>
+    
+</head>
+<body>
+  <div class="capture-image">
+      <img id="img" width="500px" height="300px" title="space for captured image" src="tracking/examples/assets/faces.jpg" />
+  </div>
+
+  <script>
+	function main()
+	{
+		var inputFileToLoad = document.createElement("input");
+		inputFileToLoad.type = "file";
+		inputFileToLoad.id = "inputFileToLoad";
+		document.body.appendChild(inputFileToLoad);
+
+		var buttonLoadFile = document.createElement("button");
+		buttonLoadFile.onclick = loadImageFileAsURL;
+		buttonLoadFile.textContent = "Load Selected File";
+		document.body.appendChild(buttonLoadFile);
+
+		var buttonTrackFace = document.createElement("button");
+		buttonTrackFace.onclick = trackFacesOnImage;
+		buttonTrackFace.textContent = "Track Faces on Image";
+		document.body.appendChild(buttonTrackFace);
+	}
+
+	function loadImageFileAsURL()
+	{
+		var filesSelected = document.getElementById("inputFileToLoad").files;
+		if (filesSelected.length > 0)
+		{
+			var fileToLoad = filesSelected[0];
+
+			if (fileToLoad.type.match("image.*"))
+			{
+				var fileReader = new FileReader();
+				fileReader.onload = function(fileLoadedEvent) 
+				{
+					var imageLoaded = document.getElementById("img");
+					imageLoaded.src = fileLoadedEvent.target.result;
+					//document.body.appendChild(imageLoaded);
+					
+					while (imageLoaded.nextSibling) {
+						document.querySelector('.capture-image').removeChild(imageLoaded.nextSibling);						
+					}
+				};
+				fileReader.readAsDataURL(fileToLoad);
+			}
+		}
+	}
+	
+	function trackFacesOnImage()
+	{
+      var img = document.getElementById('img');
+	  var parentElement = document.querySelector('.capture-image');
+
+      var tracker = new tracking.ObjectTracker(['face']);
+      tracker.setStepSize(1.7);
+      tracking.track('#img', tracker);
+
+      tracker.on('track', function(event) {
+        event.data.forEach(function(rect) {
+          window.plot(rect.x, rect.y, rect.width, rect.height);
+        });
+      });
+
+      window.plot = function(x, y, w, h) {
+      	console.log(x, y, w, h);
+      	
+        var rect = document.createElement('div');
+        parentElement.appendChild(rect);//, parentElement.firstChild);
+        rect.classList.add('rect');
+        rect.style.width = w + 'px';
+        rect.style.height = h + 'px';
+        rect.style.left = (img.offsetLeft + x) + 'px';
+        rect.style.top = (img.offsetTop + y) + 'px';
+      };		
+	}	
+
+	main();	
+  </script>
+
+</body>
+</html>
