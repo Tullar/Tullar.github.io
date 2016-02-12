@@ -12,6 +12,7 @@
 		<!-- CSS -->
   		<link href='http://fonts.googleapis.com/css?family=Abel' rel='stylesheet' type='text/css'>
 		<link type="text/css" rel="stylesheet" media="screen" href="css/page.css" />
+		<link type="text/css" rel="stylesheet" media="screen" href="css/Photobooth.css" />
 
   <!-- Always force latest IE rendering engine (even in intranet) & Chrome Frame. Remove this if you use the .htaccess -->
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
@@ -19,7 +20,6 @@
   <title>Fit Clothes For Your Avatar!</title>
   <meta name="description" content="Capture your avatar, and fit great clothes for him/her!">
   <meta name="author" content="Tullar">
-  <meta name="viewport" content="width=device-width; initial-scale=1.0">
 </head>
 
 <body>
@@ -28,10 +28,42 @@
     <nav></nav>
 
     <div id='page'>
-      
+      <div id='controls'>
+      	<input type="button" title="BUTTON" />
+      </div>
+      <div id='camstream' >
+      	<canvas id="cv-cam" style="background-color: #f6f6f6" width="300" height="300px">cam</canvas>
+      	
+<script>
+	
+</script>      	
+      	
+      </div>
+      <div id='animation' >
+      	<canvas id="cv-img" style="background-color: #0c89b0" width="300" height="300px">img</canvas>
+      </div>
     </div>
 
     <footer></footer>
   </div>
 </body>
+
+<script>
+
+function main() {
+	container = document.getElementById( "camstream" );
+	gallery = document.getElementById( "animation" );
+	
+	myPhotobooth = new Photobooth( container );
+	
+	myPhotobooth.onImage = function( dataUrl ){
+		var myImage = document.createElement( "img" );
+		myImage.src = dataUrl;
+		gallery.appendChild( myImage );
+	};
+}
+
+main()
+</script>
+
 </html>

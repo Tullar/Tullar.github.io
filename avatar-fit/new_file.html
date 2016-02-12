@@ -1,0 +1,39 @@
+<head><meta charset="utf-8"></head>
+<body>
+	<canvas id='canvas' class='canvas' width="500px" height="500px"></canvas>
+	
+	<script>
+		window.URL || (window.URL = window.webkitURL || window.mozURL || window.oURL || window.msieURL || window.msURL);
+		console.log(window.URL);
+		navigator.getUserMedia || (navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.oGetUserMedia || navigator.msieGetUserMedia || navigator.msGetUserMedia);
+		console.log(navigator.getUserMedia);
+
+		var video = document.createElement('video');
+		video.setAttribute('autoplay', true);
+		
+		//toString for the older implementation
+		var options = {video: true, toString: function(){ return "video"; }};
+		navigator.getUserMedia(options, successCallback, errorCallback);
+
+		//using the normalised window.URL
+		function successCallback(stream) {
+		  video.src = (window.URL && window.URL.createObjectURL) ? window.URL.createObjectURL(stream) : stream;
+		  console.log('ok ', video.src);
+		}
+		function errorCallback(e) {
+		  alert('Uh-oh, the webcam didn\'t start. Do you have a webcam? Did you give it permission? Refresh to try again.');
+		  console.log('err ', e);
+		}		
+		
+		function drawFrame() {
+		  var canvas = document.querySelector('canvas'),
+		      context = canvas.getContext('2d');
+		
+		  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+		  setTimeout(drawFrame, 50);
+		}
+
+
+	</script>
+	
+</body>
