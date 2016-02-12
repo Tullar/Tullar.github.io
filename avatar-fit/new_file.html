@@ -5,6 +5,7 @@
 	<script>
 		window.URL || (window.URL = window.webkitURL || window.mozURL || window.oURL || window.msieURL || window.msURL);
 		console.log(window.URL);
+		// mozGetUserMedia deaprecated in favour of navigator.mediaDevices.getUserMedia - but only on newest Firefox (12.02.2016)
 		navigator.getUserMedia || (navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.oGetUserMedia || navigator.msieGetUserMedia || navigator.msGetUserMedia);
 		console.log(navigator.getUserMedia);
 
@@ -19,6 +20,7 @@
 		function successCallback(stream) {
 		  video.src = (window.URL && window.URL.createObjectURL) ? window.URL.createObjectURL(stream) : stream;
 		  console.log('ok ', video.src);
+		  drawFrame();
 		}
 		function errorCallback(e) {
 		  alert('Uh-oh, the webcam didn\'t start. Do you have a webcam? Did you give it permission? Refresh to try again.');
@@ -28,6 +30,8 @@
 		function drawFrame() {
 		  var canvas = document.querySelector('canvas'),
 		      context = canvas.getContext('2d');
+		
+			console.log(canvas);
 		
 		  context.drawImage(video, 0, 0, canvas.width, canvas.height);
 		  setTimeout(drawFrame, 50);
