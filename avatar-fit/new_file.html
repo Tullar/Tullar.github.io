@@ -1,6 +1,125 @@
-<head><meta charset="utf-8"></head>
+<head><meta charset="utf-8">
+	<script src="js/tracking/tracking.js"></script>
+	<script src="js/tracking/data/face.js"></script>
+	
+</head>
+
+<style>
+	canvas {
+    	border-style: solid;
+    	border-width: medium;
+	}
+	
+  .rect {
+    border: 2px solid #a64ceb;
+    left: -1000px;
+    position: absolute;
+    top: -1000px;
+  }
+
+  /*#img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin: -150px 0 0 -250px;
+  }	*/
+</style>
+
 <body>
-	<canvas id='canvas' class='canvas' width="500px" height="500px"></canvas>
+	<div class="capture-video">
+		<canvas id='camera' width="500px" height="500px"></canvas>
+		<canvas id='photo' width="500px" height="500px"></canvas>
+	</div>
+	
+  <div class="capture-image">
+      <img id="img" width="500px" height="300px" title="space for captured image"/>
+  </div>
+
+  <script>
+	function main()
+	{
+		var inputFileToLoad = document.createElement("input");
+		inputFileToLoad.type = "file";
+		inputFileToLoad.id = "inputFileToLoad";
+		document.body.appendChild(inputFileToLoad);
+
+		var buttonLoadFile = document.createElement("button");
+		buttonLoadFile.onclick = loadImageFileAsURL;
+		buttonLoadFile.textContent = "Load Selected File";
+		document.body.appendChild(buttonLoadFile);
+
+		var buttonTrackFace = document.createElement("button");
+		buttonTrackFace.onclick = trackFacesOnImage;
+		buttonTrackFace.textContent = "Track Faces on Image";
+		document.body.appendChild(buttonTrackFace);
+	}
+
+	function loadImageFileAsURL()
+	{
+		var filesSelected = document.getElementById("inputFileToLoad").files;
+		if (filesSelected.length > 0)
+		{
+			var fileToLoad = filesSelected[0];
+
+			if (fileToLoad.type.match("image.*"))
+			{
+				var fileReader = new FileReader();
+				fileReader.onload = function(fileLoadedEvent) 
+				{
+					var imageLoaded = document.getElementById("img");
+					imageLoaded.src = fileLoadedEvent.target.result;
+					//document.body.appendChild(imageLoaded);
+					
+					//
+					var canvas = document.getElementById('photo');
+					var imageObj = new Image();
+					imageObj.onload = function() {
+          				canvas.getContext('2d').drawImage(this, 0, 0);// canvas.width, canvas.height);
+        			};
+					imageObj.src = fileLoadedEvent.target.result;
+					//
+					
+					while (imageLoaded.nextSibling) {
+						document.querySelector('.capture-image').removeChild(imageLoaded.nextSibling);						
+					}
+				};
+				fileReader.readAsDataURL(fileToLoad);
+			}
+		}
+	}
+	
+	function trackFacesOnImage()
+	{
+      var img = document.getElementById('img');
+	  var parentElement = document.querySelector('.capture-image');
+
+      var tracker = new tracking.ObjectTracker(['face']);
+      tracker.setStepSize(1.7);
+      tracking.track(img, tracker);
+
+      tracker.on('track', function(event) {
+      	//console.log('on');
+        event.data.forEach(function(rect) {
+          window.plot(rect.x, rect.y, rect.width, rect.height);
+        });
+      });
+
+      window.plot = function(x, y, w, h) {
+      	console.log(x, y, w, h);
+      	
+        var rect = document.createElement('div');
+        parentElement.appendChild(rect);
+        rect.classList.add('rect');
+        rect.style.width = w + 'px';
+        rect.style.height = h + 'px';
+        rect.style.left = (img.offsetLeft + x) + 'px';
+        rect.style.top = (img.offsetTop + y) + 'px';
+      };		
+	}	
+
+	main();	
+  </script>
+	
 	
 	<script>
 		window.URL || (window.URL = window.webkitURL || window.mozURL || window.oURL || window.msieURL || window.msURL);
@@ -9,14 +128,15 @@
 		navigator.getUserMedia || (navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.oGetUserMedia || navigator.msieGetUserMedia || navigator.msGetUserMedia);
 		console.log(navigator.getUserMedia);
 
-		var video = document.createElement('video');
+		var canvas = document.querySelector('canvas'),
+			context = canvas.getContext('2d');
+			video = document.createElement('video');
 		video.setAttribute('autoplay', true);
 		
 		//toString for the older implementation
 		var options = {video: true, toString: function(){ return "video"; }};
-		navigator.getUserMedia(options, successCallback, errorCallback);
+		//navigator.getUserMedia(options, successCallback, errorCallback);
 
-		//using the normalised window.URL
 		function successCallback(stream) {
 		  video.src = (window.URL && window.URL.createObjectURL) ? window.URL.createObjectURL(stream) : stream;
 		  console.log('ok ', video.src);
@@ -28,11 +148,6 @@
 		}		
 		
 		function drawFrame() {
-		  var canvas = document.querySelector('canvas'),
-		      context = canvas.getContext('2d');
-		
-			console.log(canvas);
-		
 		  context.drawImage(video, 0, 0, canvas.width, canvas.height);
 		  setTimeout(drawFrame, 50);
 		}

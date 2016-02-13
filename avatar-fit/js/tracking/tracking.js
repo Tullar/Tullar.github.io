@@ -134,7 +134,7 @@
    *     element.
    * @param {object} opt_options Optional configuration to the tracker.
    */
-  tracking.track = function(element, tracker, opt_options) {
+  tracking.track = function(element, tracker, opt_options) {  	
     element = tracking.one(element);
     if (!element) {
       throw new Error('Element not found, try a different element or selector.');
@@ -173,6 +173,7 @@
   tracking.trackCanvas_ = function(element, tracker) {
     var self = this;
     var task = new tracking.TrackerTask(tracker);
+
     task.on('run', function() {
       self.trackCanvasInternal_(element, tracker);
     });
