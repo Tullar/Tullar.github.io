@@ -1,69 +1,146 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
   <meta charset="utf-8">
-  		<!-- JS -->
-  		<script type="text/javascript" src="js/avatar-fit.js"></script>
-		<script type="text/javascript" src="js/main.js"></script>
-		<script type="text/javascript" src="js/DAT.GUI.min.js"></script>
-		<script type="text/javascript" src="js/three.min.js"></script>
-		<script type="text/javascript" src="js/tracking/tracking-min.js"></script>
-  		<script type="text/javascript" src="js/tracking/data/face-min.js"></script>
-		<!-- CSS -->
-  		<link href='https://fonts.googleapis.com/css?family=Abel' rel='stylesheet' type='text/css'>
-		<link type="text/css" rel="stylesheet" media="screen" href="css/page.css" />
-		<link type="text/css" rel="stylesheet" media="screen" href="css/Photobooth.css" />
+  <title>tracking.js - face with camera</title>
+  <link rel="stylesheet" href="assets/demo.css">
 
-  <!-- Always force latest IE rendering engine (even in intranet) & Chrome Frame. Remove this if you use the .htaccess -->
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <script src="js/tracking/tracking.js"></script>
+  <script src="js/tracking/data/face.js"></script>
+  <script src="js/DAT.GUI.min.js"></script>
+  <script src="assets/stats.min.js"></script>
 
-  <title>Fit Clothes For Your Avatar!</title>
-  <meta name="description" content="Capture your avatar, and fit great clothes for him/her!">
-  <meta name="author" content="Tullar">
+  <style>
+  button {
+  	margin-left: 10px;
+  	margin-top: 10px;
+  	position: static;
+  }
+  
+  video, canvas {
+    margin-left: 100px;
+    margin-top: 35px;
+    position: absolute;    
+  }
+  </style>
 </head>
-
 <body>
-  <div>
-    <header></header>
-    <nav></nav>
+  	<input id='btn1' type="button" value="1.Video Run" />
+  	<input id='btn2' type="button" value="2.Video Stop" />
 
-    <div id='page'>
-      <div id='controls'>
-      	<input type="button" title="BUTTON" />
-      </div>
-      <div id='camstream' >
-      	<canvas id="cv-cam" style="background-color: #f6f6f6" width="300" height="300px">cam</canvas>
-      	
-<script>
-	
-</script>      	
-      	
-      </div>
-      <div id='animation' >
-      	<canvas id="cv-img" style="background-color: #0c89b0" width="300" height="300px">img</canvas>
-      </div>
+  <div class="demo-frame">
+    <div class="demo-container">
+      <video id="video" width="600" height="450" preload autoplay loop muted controls></video>
+      <canvas id="canvas" width="600" height="450"></canvas>
     </div>
-
-    <footer></footer>
   </div>
+
+  <script>
+	// create variables for scripts
+    var video = document.getElementById('video');
+    var canvas = document.getElementById('canvas');
+    var context = canvas.getContext('2d');
+    var tracker = new tracking.ObjectTracker('face');
+    var imgtracker = new tracking.ObjectTracker('face');
+    imgtracker.setStepSize(1.7);    
+    tracker.setInitialScale(4);
+    tracker.setStepSize(2);
+    tracker.setEdgesDensity(0.1);
+	// menu controls
+    var btn1 = document.getElementById('btn1');
+    var btn2 = document.getElementById('btn2');
+    // GUI    
+    var gui = new DAT.GUI();
+    gui.add(tracker, 'edgesDensity', 0.1, 0.5).step(0.01);
+    gui.add(tracker, 'initialScale', 1.0, 10.0).step(0.1);
+    gui.add(tracker, 'stepSize', 1, 5).step(0.1);        
+        
+    window.onload = function() {
+	  var inputFileToLoad = document.createElement("input");
+	  inputFileToLoad.type = "file";
+	  inputFileToLoad.id = "inputFileToLoad";
+	  document.body.appendChild(inputFileToLoad);
+
+	  var buttonLoadFile = document.createElement("button");
+	  buttonLoadFile.onclick = loadImageFileAsURL;
+	  buttonLoadFile.textContent = "Load Selected File";
+	  document.body.appendChild(buttonLoadFile);
+
+	  var buttonTrackFace = document.createElement("button");
+	  buttonTrackFace.onclick = trackFacesOnImage;
+	  buttonTrackFace.textContent = "Track Faces on Image";
+	  document.body.appendChild(buttonTrackFace);    	
+    	
+      var trackingTask = tracking.track('#video', tracker, { camera: true });
+
+      tracker.on('track', function(event) {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        event.data.forEach(function(rect) {       	
+          context.strokeStyle = '#a64ceb';
+          context.strokeRect(rect.x, rect.y, rect.width, rect.height);
+          context.font = '11px Helvetica';
+          context.fillStyle = "#fff";
+          context.fillText('x: ' + rect.x + 'px', rect.x + rect.width + 5, rect.y + 11);
+          context.fillText('y: ' + rect.y + 'px', rect.x + rect.width + 5, rect.y + 22);
+        });
+      });
+
+	  btn1.onclick = function() { video.play(); trackingTask.run(); console.log('run'); }
+      btn2.onclick = function() { video.pause(); trackingTask.stop(); console.log('stop'); }
+    };
+    
+	function loadImageFileAsURL()
+	{
+		var filesSelected = document.getElementById("inputFileToLoad").files;
+		if (filesSelected.length > 0)
+		{
+			var fileToLoad = filesSelected[0];
+
+			if (fileToLoad.type.match("image.*"))
+			{
+				var fileReader = new FileReader();
+				fileReader.onload = function(fileLoadedEvent) 
+				{
+					//var imageLoaded = document.getElementById("img");
+					//imageLoaded.src = fileLoadedEvent.target.result;
+					var imageObj = new Image();
+					imageObj.onload = function() {
+          				context.drawImage(this, 0, 0);//, canvas.width, canvas.height);
+        			};
+					imageObj.src = fileLoadedEvent.target.result;
+					//while (imageLoaded.nextSibling) {
+					//	document.querySelector('.capture-image').removeChild(imageLoaded.nextSibling);						
+					//}
+				};
+				fileReader.readAsDataURL(fileToLoad);
+			}
+		}
+	}
+	
+	function trackFacesOnImage()
+	{
+      tracking.track('canvas', imgtracker);
+      	console.log('on');
+      
+      imgtracker.on('track', function(event) {
+        //context.clearRect(0, 0, canvas.width, canvas.height);
+        if (event.data.length === 0) { console.log('no faces found'); }
+        
+        event.data.forEach(function(rect) {
+          console.log(rect.x, rect.y, rect.width, rect.height);
+        	
+          context.strokeStyle = '#a64ceb';
+          context.strokeRect(rect.x, rect.y, rect.width, rect.height);
+          context.font = '11px Helvetica';
+          context.fillStyle = "#fff";
+          context.fillText('x: ' + rect.x + 'px', rect.x + rect.width + 5, rect.y + 11);
+          context.fillText('y: ' + rect.y + 'px', rect.x + rect.width + 5, rect.y + 22);
+          
+        });
+      });		
+	}	
+  </script>
+
 </body>
-
-<script>
-
-function main() {
-	container = document.getElementById( "camstream" );
-	gallery = document.getElementById( "animation" );
-	
-	myPhotobooth = new Photobooth( container );
-	
-	myPhotobooth.onImage = function( dataUrl ){
-		var myImage = document.createElement( "img" );
-		myImage.src = dataUrl;
-		gallery.appendChild( myImage );
-	};
-}
-
-main()
-</script>
-
 </html>

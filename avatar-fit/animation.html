@@ -1,0 +1,179 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>canvas animation</title>
+  
+  <script src="js/DAT.GUI.min.js"></script>
+</head>
+
+<style>
+	canvas {
+		position: fixed;
+		/*background-color: #111111;*/
+	}
+</style>
+
+<body>
+	<div>
+		<canvas id='avatar' width="1000" height="600">a space for animated avatar</canvas>
+	</div>
+	
+	<script>
+		var images = {};
+		
+		loadImage("sprite_face_male");
+		loadImage("sprite_mask_male");
+		loadImage("mh1");
+		loadImage("sprite_upper_male");
+		loadImage("sprite_bottom_male");
+		loadImage("sprite_face_female");
+		loadImage("sprite_mask_female");
+		loadImage("ftt12");
+		loadImage("sprite_upper_female");
+		loadImage("sprite_bottom_female");
+		loadImage("back2");
+		
+		var canvas = document.getElementById('avatar');
+		var context = canvas.getContext("2d");			
+		context.save();
+		
+		// canvas was rescaled by 0.25
+		var parts = {
+			headx:1400, 
+			heady:520,
+			maskx:1250,
+			masky:767,
+			upperx:1160,
+			uppery:500,
+			bottomx:1200,
+			bottomy:1300,
+			shadowx:1480,
+			shadowy:2145
+		};
+		
+    	var gui = new DAT.GUI();
+    	gui.add(parts, 'headx', 0, 4*canvas.width).step(1);
+    	gui.add(parts, 'heady', 0, 4*canvas.height).step(1);
+    	gui.add(parts, 'maskx', 0, 4*canvas.width).step(1);
+    	gui.add(parts, 'masky', 0, 4*canvas.height).step(1);
+    	gui.add(parts, 'upperx', 0, 4*canvas.width).step(1);
+    	gui.add(parts, 'uppery', 0, 4*canvas.height).step(1);
+    	gui.add(parts, 'bottomx', 0, 4*canvas.width).step(1);
+    	gui.add(parts, 'bottomy', 0, 4*canvas.height).step(1);
+    	gui.add(parts, 'shadowx', 0, 4*canvas.width).step(1);
+    	gui.add(parts, 'shadowy', 0, 4*canvas.height).step(1);   		
+
+		var partsf = {
+			headx:2250, 
+			heady:640,
+			maskx:2111,
+			masky:870,
+			upperx:2040,
+			uppery:600,
+			bottomx:2160,
+			bottomy:1255,
+			shadowx:2480,
+			shadowy:2145
+		};
+		
+    	var gui = new DAT.GUI();
+    	gui.add(partsf, 'headx', 0, 4*canvas.width).step(1);
+    	gui.add(partsf, 'heady', 0, 4*canvas.height).step(1);
+    	gui.add(partsf, 'maskx', 0, 4*canvas.width).step(1);
+    	gui.add(partsf, 'masky', 0, 4*canvas.height).step(1);
+    	gui.add(partsf, 'upperx', 0, 4*canvas.width).step(1);
+    	gui.add(partsf, 'uppery', 0, 4*canvas.height).step(1);
+    	gui.add(partsf, 'bottomx', 0, 4*canvas.width).step(1);
+    	gui.add(partsf, 'bottomy', 0, 4*canvas.height).step(1);
+    	gui.add(partsf, 'shadowx', 0, 4*canvas.width).step(1);
+    	gui.add(partsf, 'shadowy', 0, 4*canvas.height).step(1);   		
+
+		
+		function loadImage(name) {
+		  images[name] = new Image();
+		  images[name].onload = function() { 
+		      resourceLoaded();
+		  }
+		  images[name].src = "img/AvatarTest/" + name + ".png";
+		}	
+				
+		var totalResources = 11;
+		var numResourcesLoaded = 0;
+		var fps = 30;
+		
+		function resourceLoaded() {
+		  numResourcesLoaded += 1;
+		  if(numResourcesLoaded === totalResources) {
+		    setInterval(redraw, 1000 / fps);
+		  }
+		}		
+		
+		var charX = 245;
+		var charY = 185;
+		  
+		function redraw() {
+		  var x = charX;
+		  var y = charY;
+		
+		  canvas.width = canvas.width; // clears the canvas 
+		  //context.clearRect(0, 0, canvas.width, canvas.height);
+		  //context.restore();
+		  context.drawImage(images["back2"], 0, 0, canvas.width, canvas.height);
+		  context.scale(0.25, 0.25);  
+		      
+		  //male
+		  drawEllipse(parts.shadowx, parts.shadowy, 800 - breathAmt, 30);                    
+		  context.drawImage(images["sprite_bottom_male"], parts.bottomx, parts.bottomy);
+		  context.drawImage(images["sprite_upper_male"], parts.upperx, parts.uppery - breathAmt);
+		  context.drawImage(images["sprite_mask_male"], parts.maskx, parts.masky - breathAmt/2);
+		  context.drawImage(images["mh1"], parts.maskx, parts.masky - breathAmt/2);
+		  context.drawImage(images["sprite_face_male"], parts.headx, parts.heady - breathAmt);
+		  //fmale
+		  drawEllipse(partsf.shadowx, partsf.shadowy, 800 - breathAmt, 30);                    
+		  context.drawImage(images["sprite_bottom_female"], partsf.bottomx, partsf.bottomy);
+		  context.drawImage(images["sprite_upper_female"], partsf.upperx, partsf.uppery - breathAmt);
+		  context.drawImage(images["sprite_mask_female"], partsf.maskx, partsf.masky - breathAmt/2);
+		  context.drawImage(images["ftt12"], partsf.maskx, partsf.masky - breathAmt/2);
+		  context.drawImage(images["sprite_face_female"], partsf.headx, partsf.heady - breathAmt);
+		
+		}		
+		
+		function drawEllipse(centerX, centerY, width, height) {
+		  context.beginPath();
+		  context.moveTo(centerX, centerY - height/2);
+		  context.bezierCurveTo(
+		    centerX + width/2, centerY - height/2,
+		    centerX + width/2, centerY + height/2,
+		    centerX, centerY + height/2);
+		  context.bezierCurveTo(
+		    centerX - width/2, centerY + height/2,
+		    centerX - width/2, centerY - height/2,
+		    centerX, centerY - height/2);
+		  context.fillStyle = "black";
+		  context.fill();
+		  context.closePath();	
+		}
+				
+		var breathInc = 0.5;
+		var breathDir = 1;
+		var breathAmt = 0;
+		var breathMax = 10;
+		var breathInterval = setInterval(updateBreath, 1000 / fps);
+				
+		function updateBreath() {                        
+		  if (breathDir === 1) {  // breath in
+		    breathAmt -= breathInc;
+		    if (breathAmt < -breathMax) {
+		      breathDir = -1;
+		    }
+		  } else {  // breath out
+		    breathAmt += breathInc;
+		    if(breathAmt > breathMax) {
+		      breathDir = 1;
+		    }
+		  }
+		}						
+	</script>
+</body>
+</html>
